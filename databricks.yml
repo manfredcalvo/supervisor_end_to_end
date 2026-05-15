@@ -40,10 +40,6 @@ variables:
   mlflow_experiment_id:
     description: "MLflow experiment ID for the Supervisor Agent (used for feedback assessments)"
     default: "596640452270627"
-  lakebase_database_id:
-    description: "Lakebase database ID — auto-generated on first deploy. Run: databricks postgres list-databases projects/supervisor-end-to-end-<suffix>/branches/production to find it."
-    default: "databricks-postgres"
-
 resources:
   postgres_projects:
     chatbot_lakebase:
@@ -177,7 +173,7 @@ resources:
           description: "Lakebase database for persistent chat history"
           postgres:
             branch: "projects/supervisor-end-to-end-${var.resource_name_suffix}/branches/production"
-            database: "projects/supervisor-end-to-end-${var.resource_name_suffix}/branches/production/databases/${var.lakebase_database_id}"
+            database: "projects/supervisor-end-to-end-${var.resource_name_suffix}/branches/production/databases/${resources.postgres_projects.chatbot_lakebase.database.database_name}"
             permission: CAN_CONNECT_AND_CREATE
 
 targets:
