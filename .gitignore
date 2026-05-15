@@ -7,6 +7,7 @@ node_modules
 .pnp.js
 .claude/*
 !.claude/skills/
+!.claude/settings_template.json
 
 # testing
 coverage

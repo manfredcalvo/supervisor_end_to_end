@@ -408,3 +408,53 @@ databricks bundle bind <resource-name>     # if manually created
 ### App fails to start with database errors
 
 Ensure `lakebase_database_id` in `databricks.yml` is set to the real value (not `placeholder`). See Step 4 above.
+
+---
+
+## Using Claude Code with This Project
+
+### Overview
+
+This project includes a `CLAUDE.md` file that gives Claude Code complete context about the architecture, deployment steps, and key file paths — so you can use Claude for development and deployment without having to explain the project from scratch each session.
+
+### Connecting Claude Code to Databricks
+
+Rather than purchasing an Anthropic subscription, you can route Claude Code API calls through your Databricks workspace AI Gateway. Claude Code bills against your Databricks workspace spend — no separate Anthropic account or license is needed.
+
+#### Project-Level Settings (Option A)
+
+Copy the template and fill in your values:
+
+```bash
+cp .claude/settings_template.json .claude/settings.json
+# Edit .claude/settings.json with your workspace URL and PAT
+```
+
+The file sets the following environment variables for Claude Code:
+
+| Variable | Description |
+|---|---|
+| `ANTHROPIC_BASE_URL` | Your workspace AI Gateway route |
+| `ANTHROPIC_MODEL` | Primary Claude model (e.g. `databricks-claude-opus-4-6`) |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL` | Opus model override |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | Sonnet model override |
+| `CLAUDE_CODE_SUBAGENT_MODEL` | Model used for background sub-agent tasks |
+| `ANTHROPIC_AUTH_TOKEN` | Your Databricks PAT |
+
+**Important:** `.claude/settings.json` is in `.gitignore` — never commit it since it contains your PAT.
+
+#### Global Settings (Option B)
+
+Configure `~/.claude/settings.json` (Mac/Linux) or `%USERPROFILE%\.claude\settings.json` (Windows) to apply the same settings across all projects on your machine.
+
+**Precedence:** Project-level settings override global settings.
+
+### Capabilities
+
+Once configured, Claude automatically reads `CLAUDE.md` and understands:
+
+- The full deployment sequence and Databricks CLI profiles
+- All bundle resource names, UC paths, and `databricks.yml` variables
+- Key code paths, database conventions, and migration workflow
+
+You can ask Claude to deploy the app, run the pipeline job, update endpoint variables, or make code changes — all with full project context.
