@@ -58,5 +58,7 @@ server/dist/
 # Zip archives
 *.zip
 
-# Generated PDFs
+# Generated PDFs and output files
 output/
+*_output.txt
+output_example.txt
