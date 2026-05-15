@@ -344,9 +344,6 @@ MSW automatically mocks Databricks API calls when `PLAYWRIGHT=True`.
 - `scripts/get_endpoints.py` — Retrieves supervisor/KA endpoints and MLflow experiment ID after pipeline run; use `--update` to write to `databricks.yml`
 - `scripts/lakebase-role-setup.py` — Creates Postgres role and grants permissions for the app service principal
 - `scripts/scrape_databricks_docs.py` — Scrapes Databricks docs to generate PDFs for KA ingestion
-- `scripts/start-app.sh` — Installs deps and starts local dev server
-- `scripts/cleanup-database.sh` — Interactively deletes Lakebase database instances
-- `scripts/quickstart.sh` — Interactive first-time setup wizard
 
 ---
 
