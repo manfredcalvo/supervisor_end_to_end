@@ -237,6 +237,8 @@ The pipeline notebooks expect PDFs to be in the `data_management/` and `ai_analy
 
 All resources — the Lakebase database, the Databricks App, and the pipeline job — are managed by a single `databricks.yml`. Follow these steps in order.
 
+> **Before you start:** The pipeline job (Step 3) ingests PDFs from Unity Catalog Volumes to build the Knowledge Assistants. Make sure you have already scraped and uploaded the docs — see [Scraping the Knowledge Base Docs](#scraping-the-knowledge-base-docs).
+
 ### Prerequisites
 
 1. **Databricks workspace** with access to Agent Bricks, Vector Search, and Lakebase.
@@ -303,6 +305,8 @@ databricks bundle deploy --profile <your-profile>
 ---
 
 ### Step 3 — Run the pipeline job
+
+> **Prerequisite:** PDFs must be uploaded to the Unity Catalog Volumes configured in `databricks.yml` before this step. See [Scraping the Knowledge Base Docs](#scraping-the-knowledge-base-docs).
 
 The pipeline job ingests PDFs, builds Vector Search indexes, creates Knowledge Assistants, assembles the Supervisor Agent, runs evaluation, and sets up monitoring.
 
