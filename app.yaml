@@ -1,0 +1,10 @@
+command: ["sh", "-c", "npm run build && npm run start"]
+runtime: nodejs20
+
+env:
+  - name: DATABRICKS_SERVING_ENDPOINT
+    valueFrom: serving-endpoint
+  - name: LAKEBASE_ENDPOINT
+    valueFrom: database
+  - name: MLFLOW_EXPERIMENT_ID
+    valueFrom: mlflow-experiment

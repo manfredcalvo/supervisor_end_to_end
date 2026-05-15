@@ -1,0 +1,8 @@
+# Generated PDFs — too large for app deployment (uploaded directly to UC volumes)
+output/
+
+# Local dev artifacts
+node_modules/
+.env
+__pycache__/
+*.pyc

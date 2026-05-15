@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 148 30" fill="none">
+  <!-- Spark icon: rhombus divided into 4 triangles, centered at (15,15) -->
+  <!-- Top-left facet (lighter red) -->
+  <polygon points="15,2 4,15 15,15" fill="#FF6B4A"/>
+  <!-- Top-right facet (brand red) -->
+  <polygon points="15,2 15,15 26,15" fill="#FF3621"/>
+  <!-- Bottom-left facet (brand red) -->
+  <polygon points="4,15 15,15 15,28" fill="#FF3621"/>
+  <!-- Bottom-right facet (dark red) -->
+  <polygon points="15,15 26,15 15,28" fill="#C9200E"/>
+  <!-- Wordmark -->
+  <text x="33" y="20"
+    font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+    font-size="14"
+    font-weight="700"
+    fill="currentColor"
+    letter-spacing="-0.2">databricks</text>
+</svg>

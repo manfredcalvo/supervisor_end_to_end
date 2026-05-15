@@ -1,0 +1,198 @@
+bundle:
+  name: supervisor-end-to-end
+
+variables:
+  serving_endpoint_name:
+    description: "Name of the Supervisor Agent serving endpoint used by the app"
+    default: "mas-a19fb9c9-endpoint"
+  resource_name_suffix:
+    description: "Suffix for resource names (app/lakebase instance names etc). Helpful for avoiding name collisions if multiple users deploy this app to the same workspace"
+  catalog:
+    description: "Unity Catalog catalog name shared by both tracks"
+    default: "workshop_andrea"
+  schema:
+    description: "Unity Catalog schema name shared by both tracks"
+    default: "databricks_docs"
+  # ── Data Management track ────────────────────────────────────────────────────
+  data_management_volume_name:
+    description: "Volume name (inside catalog.schema) containing the PDF files for the Data Management KA"
+    default: "docs"
+  # ── AI & Analytics track ─────────────────────────────────────────────────────
+  ai_analytics_volume:
+    description: "Volume name (inside catalog.schema) containing the PDF files for the AI & Analytics pipeline"
+    default: "docs"
+  vector_search_endpoint:
+    description: "Name of the Databricks Vector Search endpoint used by the AI & Analytics track"
+    default: "supervisor_demo_vs_endpoint"
+  retrieve_col:
+    description: "Column from the processed documents table used as retrieved text in the AI & Analytics KA"
+    default: "chunk_text"
+  # ── Supervisor ────────────────────────────────────────────────────────────────
+  supervisor_display_name:
+    description: "Display name for the Supervisor Agent"
+    default: "Supervisor Agent"
+  ka_data_management_endpoint:
+    description: "Serving endpoint name for the Data Management Knowledge Assistant"
+    default: "ka-400a632b-endpoint"
+  ka_ai_analytics_endpoint:
+    description: "Serving endpoint name for the AI & Analytics Knowledge Assistant"
+    default: "ka-da5135d1-endpoint"
+  mlflow_experiment_id:
+    description: "MLflow experiment ID for the Supervisor Agent (used for feedback assessments)"
+    default: "596640452270627"
+  lakebase_database_id:
+    description: "Lakebase database ID — auto-generated on first deploy. Run: databricks postgres list-databases projects/supervisor-end-to-end-<suffix>/branches/production to find it."
+    default: "databricks-postgres"
+
+resources:
+  postgres_projects:
+    chatbot_lakebase:
+      project_id: 'supervisor-end-to-end-${var.resource_name_suffix}'
+      display_name: 'Supervisor End to End DB'
+      pg_version: 17
+
+  jobs:
+    create_supervisor_agent:
+      name: supervisor-end-to-end-${var.resource_name_suffix}
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+      tasks:
+        # ── Data Management track ──────────────────────────────────────────────
+        # Creates the KA directly from files in a Unity Catalog Volume.
+        # No AI Functions processing or Vector Search index required.
+        - task_key: ka_data_management
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/03_create_ka_from_files.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              volume_name: ${var.data_management_volume_name}
+              topic: data_management
+              config_file: ./config/ka_data_management.yaml
+        # ── AI & Analytics track ───────────────────────────────────────────────
+        # Full pipeline: AI Functions processing → Vector Search index → KA.
+        - task_key: process_ai_analytics
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/01_process_documents.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              volume: ${var.ai_analytics_volume}
+              topic: ai_analytics
+        - task_key: index_ai_analytics
+          depends_on:
+            - task_key: process_ai_analytics
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/02_create_vector_index.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              vector_search_endpoint: ${var.vector_search_endpoint}
+              topic: ai_analytics
+              embedding_col: ${var.retrieve_col}
+        - task_key: ka_ai_analytics
+          depends_on:
+            - task_key: index_ai_analytics
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/03_create_knowledge_assistant.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              topic: ai_analytics
+              config_file: ./config/ka_ai_analytics.yaml
+              retrieve_col: ${var.retrieve_col}
+        # ── Supervisor (runs after both KAs are ready) ─────────────────────────
+        - task_key: create_supervisor
+          depends_on:
+            - task_key: ka_data_management
+            - task_key: ka_ai_analytics
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/04_create_supervisor.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              supervisor_display_name: ${var.supervisor_display_name}
+              config_file: ./config/supervisor.yaml
+              ka_topics: data_management,ai_analytics
+        # ── Evaluation (runs after supervisor is created) ──────────────────────
+        - task_key: evaluate_supervisor
+          depends_on:
+            - task_key: create_supervisor
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/05_evaluate_supervisor.py
+            source: WORKSPACE
+            base_parameters:
+              supervisor_display_name: ${var.supervisor_display_name}
+        # ── Monitoring (runs after evaluation passes) ──────────────────────────
+        - task_key: monitor_supervisor
+          depends_on:
+            - task_key: evaluate_supervisor
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/06_monitor_supervisor.py
+            source: WORKSPACE
+            base_parameters:
+              supervisor_display_name: ${var.supervisor_display_name}
+
+  apps:
+    databricks_chatbot:
+      name: supervisor-end-to-end
+      description: "End-to-end Supervisor Agent demo showcasing Databricks AI capabilities"
+      source_code_path: .
+      resources:
+        - name: serving-endpoint
+          description: "Supervisor Agent serving endpoint"
+          serving_endpoint:
+            name: ${var.serving_endpoint_name}
+            permission: CAN_QUERY
+        - name: ka-data-management-endpoint
+          description: "Data Management Knowledge Assistant endpoint"
+          serving_endpoint:
+            name: ${var.ka_data_management_endpoint}
+            permission: CAN_QUERY
+        - name: ka-ai-analytics-endpoint
+          description: "AI & Analytics Knowledge Assistant endpoint"
+          serving_endpoint:
+            name: ${var.ka_ai_analytics_endpoint}
+            permission: CAN_QUERY
+        - name: mlflow-experiment
+          description: "MLflow experiment for supervisor feedback assessments"
+          experiment:
+            experiment_id: ${var.mlflow_experiment_id}
+            permission: CAN_MANAGE
+        - name: database
+          description: "Lakebase database for persistent chat history"
+          postgres:
+            branch: "projects/supervisor-end-to-end-${var.resource_name_suffix}/branches/production"
+            database: "projects/supervisor-end-to-end-${var.resource_name_suffix}/branches/production/databases/${var.lakebase_database_id}"
+            permission: CAN_CONNECT_AND_CREATE
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      resource_name_suffix: dev-${workspace.current_user.domain_friendly_name}
+
+  staging:
+    mode: production
+    variables:
+      resource_name_suffix: "staging"
+
+  prod:
+    mode: production
+    variables:
+      resource_name_suffix: "prod"
