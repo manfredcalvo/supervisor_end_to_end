@@ -173,7 +173,7 @@ resources:
           description: "Lakebase database for persistent chat history"
           postgres:
             branch: "projects/supervisor-end-to-end-${var.resource_name_suffix}/branches/production"
-            database: "projects/supervisor-end-to-end-${var.resource_name_suffix}/branches/production/databases/${resources.postgres_projects.chatbot_lakebase.database.database_name}"
+            database: "projects/supervisor-end-to-end-${var.resource_name_suffix}/branches/production/databases/databricks-postgres"
             permission: CAN_CONNECT_AND_CREATE
 
 targets:
