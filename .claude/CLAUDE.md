@@ -143,12 +143,10 @@ databricks bundle run databricks_chatbot  # Start the app
 databricks bundle summary              # View deployment status
 ```
 
-**Two-step deploy required on first run** (Lakebase autoscaling needs DB ID):
+**Two-step deploy required on first run:**
 
-1. `databricks bundle deploy` — creates the Lakebase project
-2. Get the DB ID: `databricks postgres list-databases "projects/supervisor-end-to-end-<suffix>/branches/production" --output json`
-3. Update `lakebase_database_id` in `databricks.yml`
-4. `databricks bundle deploy` again — wires up the app
+1. `databricks bundle deploy` — creates the Lakebase project and wires up the app
+2. After running the pipeline job, run `scripts/get_endpoints.py --profile <profile> --update` to populate endpoint variables, then `databricks bundle deploy` again
 
 ---
 
@@ -184,7 +182,6 @@ databricks bundle summary              # View deployment status
 | `ka_data_management_endpoint` | Data Management KA endpoint |
 | `ka_ai_analytics_endpoint` | AI & Analytics KA endpoint |
 | `mlflow_experiment_id` | MLflow experiment ID |
-| `lakebase_database_id` | Auto-generated DB ID (set after first deploy) |
 | `catalog` / `schema` | Unity Catalog location |
 | `data_management_volume_name` | Volume with Data Management PDFs |
 | `ai_analytics_volume` | Volume with AI & Analytics PDFs |
@@ -369,7 +366,7 @@ MSW automatically mocks Databricks API calls when `PLAYWRIGHT=True`.
 
 **"Resource not found" during deploy** — Use `databricks bundle summary` to inspect state, then `databricks bundle unbind <resource>` or `databricks bundle bind <resource>`.
 
-**App fails with database errors** — Ensure `lakebase_database_id` in `databricks.yml` is set to the real value (not `placeholder`). Run `scripts/get_endpoints.py` to retrieve it.
+**App fails with database errors** — Ensure Step 2 (first bundle deploy) ran before Step 4 (final deploy) so the Lakebase project exists and is wired up.
 
 ---
 

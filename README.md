@@ -279,8 +279,6 @@ Open `databricks.yml` and set the variables for your workspace. The variables yo
 | `supervisor_display_name` | Display name for the Supervisor Agent | `Supervisor Agent` |
 | `mlflow_experiment_id` | MLflow experiment ID _(set after Step 3)_ | `596640452270627` |
 
-Leave `lakebase_database_id` at its default (`placeholder`) for now — it will be updated in Step 5.
-
 Also review the KA and Supervisor YAML configs under `notebooks/config/`:
 
 ```
@@ -294,7 +292,7 @@ notebooks/config/
 
 ### Step 2 — First bundle deploy (creates Lakebase project)
 
-The first deploy provisions the Lakebase autoscaling project. The app binding will fail with a placeholder DB ID — that is expected and fixed in Step 5.
+The first deploy provisions the Lakebase autoscaling project.
 
 ```bash
 databricks bundle deploy
@@ -349,30 +347,9 @@ Values to set in databricks.yml:
 
 ---
 
-### Step 4 — Get the Lakebase database ID
+### Step 4 — Final bundle deploy
 
-After the first deploy (Step 2), the Lakebase project was created with an auto-generated database ID. Retrieve it:
-
-```bash
-# Replace <suffix> with your resource_name_suffix (e.g. dev-firstname-lastname)
-databricks postgres list-databases \
-  "projects/supervisor-end-to-end-<suffix>/branches/production" \
-  --output json | python3 -c "import sys,json; db=json.load(sys.stdin)[0]; print(db['name'].split('/')[-1])"
-```
-
-The returned value looks like `databricks-postgres` or `db-xxxx-xxxxxxxxxxxx`. Update `databricks.yml`:
-
-```yaml
-variables:
-  lakebase_database_id:
-    default: "databricks-postgres"   # ← replace with value from command above
-```
-
----
-
-### Step 5 — Final bundle deploy
-
-Redeploy to wire up the app with the real Lakebase database ID, endpoint names, and MLflow experiment:
+Redeploy to wire up the app with the endpoint names and MLflow experiment:
 
 ```bash
 databricks bundle deploy
@@ -380,7 +357,7 @@ databricks bundle deploy
 
 ---
 
-### Step 6 — Start the app
+### Step 5 — Start the app
 
 ```bash
 databricks bundle run databricks_chatbot
@@ -532,4 +509,4 @@ databricks bundle bind <resource-name>     # if manually created
 
 ### App fails to start with database errors
 
-Ensure `lakebase_database_id` in `databricks.yml` is set to the real value (not `placeholder`). See Step 4 above.
+Ensure the Lakebase project was created by running Step 2 before the final deploy (Step 4).
