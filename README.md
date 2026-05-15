@@ -184,6 +184,55 @@ You can ask Claude to deploy the app, run the pipeline job, update endpoint vari
 
 ---
 
+## Scraping the Knowledge Base Docs
+
+The pipeline ingests PDFs from Unity Catalog Volumes. Use `scripts/scrape_databricks_docs.py` to generate those PDFs from the live Databricks documentation, then upload them to your workspace.
+
+### Prerequisites
+
+```bash
+pip install playwright pypdf
+playwright install chromium
+```
+
+### Step 1 — Scrape
+
+Each `--track` produces one PDF per documentation section. Run both tracks:
+
+```bash
+# Data Management track → ./output/data_management/
+python scripts/scrape_databricks_docs.py --track data_management
+
+# AI & Analytics track → ./output/ai_analytics/
+python scripts/scrape_databricks_docs.py --track ai_analytics
+```
+
+To scrape a single section (faster for testing):
+
+```bash
+python scripts/scrape_databricks_docs.py --track data_management --section oltp_autoscaling.pdf
+```
+
+Both commands write PDFs to `./output/<track>/` by default. The output directory is in `.gitignore`.
+
+### Step 2 — Upload to Unity Catalog Volume
+
+Replace `<catalog>`, `<schema>`, and `<volume>` with the values from `databricks.yml` (`catalog`, `schema`, `data_management_volume_name` / `ai_analytics_volume`):
+
+```bash
+# Data Management PDFs
+databricks fs cp --recursive ./output/data_management/ \
+  dbfs:/Volumes/<catalog>/<schema>/<volume>/data_management/
+
+# AI & Analytics PDFs
+databricks fs cp --recursive ./output/ai_analytics/ \
+  dbfs:/Volumes/<catalog>/<schema>/<volume>/ai_analytics/
+```
+
+The pipeline notebooks expect PDFs to be in the `data_management/` and `ai_analytics/` subfolders within the respective volumes — the subfolder name must match the topic key.
+
+---
+
 ## Deployment
 
 All resources — the Lakebase database, the Databricks App, and the pipeline job — are managed by a single `databricks.yml`. Follow these steps in order.
