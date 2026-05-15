@@ -445,7 +445,29 @@ The file sets the following environment variables for Claude Code:
 
 #### Global Settings (Option B)
 
-Configure `~/.claude/settings.json` (Mac/Linux) or `%USERPROFILE%\.claude\settings.json` (Windows) to apply the same settings across all projects on your machine.
+Configure the file below to apply the same settings across all projects on your machine.
+
+**Windows** — `%USERPROFILE%\.claude\settings.json` (e.g. `C:\Users\<your-username>\.claude\settings.json`):
+
+```powershell
+# Create the directory if it doesn't exist
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude"
+
+# Open in Notepad (or replace notepad with code, vim, etc.)
+notepad "$env:USERPROFILE\.claude\settings.json"
+```
+
+**Mac/Linux** — `~/.claude/settings.json`:
+
+```bash
+mkdir -p ~/.claude
+# Open in your preferred editor
+nano ~/.claude/settings.json
+```
+
+Paste the same JSON from `.claude/settings_template.json` (with your real values) into the file.
+
+**Note:** No `.gitignore` entry is needed — the file lives outside any repository.
 
 **Precedence:** Project-level settings override global settings.
 
