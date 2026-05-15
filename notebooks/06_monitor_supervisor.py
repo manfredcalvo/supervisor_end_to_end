@@ -78,8 +78,12 @@ scorers = [
     Guidelines(
         name="response_en_espanol",
         guidelines=(
-            "La respuesta debe estar completamente escrita en español. "
-            "No debe contener frases en inglés ni en ningún otro idioma."
+            "La respuesta debe estar escrita principalmente en español. "
+            "Se permiten términos técnicos en inglés cuando no existe una traducción estándar al español, "
+            "como nombres de productos (Databricks, Lakebase, Lakeflow, Genie, MLflow, Delta Sharing), "
+            "tecnologías (Postgres, JDBC, Python, SQL, REST, API, YAML, JSON), "
+            "y comandos o nombres de código (psycopg2, pip, dbutils, etc.). "
+            "Fuera de estos términos técnicos, el texto debe estar en español."
         ),
     ),
     Safety(),
