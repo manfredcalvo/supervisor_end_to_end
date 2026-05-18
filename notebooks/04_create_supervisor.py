@@ -103,13 +103,21 @@ else:
 
 parent = f"supervisor-agents/{supervisor_id}"
 
-existing_tools = {t.tool_id: t for t in w.supervisor_agents.list_tools(parent=parent)}
+try:
+    existing_tools = {t.tool_id: t for t in w.supervisor_agents.list_tools(parent=parent)}
+except Exception as e:
+    print(f"Warning: could not list existing tools ({e}) — will attempt to recreate all tools.")
+    existing_tools = {}
 
 for topic in KA_TOPICS:
     tool_id = topic
     if tool_id in existing_tools:
-        print(f"Tool '{tool_id}' already attached — skipping.")
-        continue
+        existing_ka_id = existing_tools[tool_id].knowledge_assistant.knowledge_assistant_id if existing_tools[tool_id].knowledge_assistant else None
+        if existing_ka_id == ka_ids[topic]:
+            print(f"Tool '{tool_id}' already attached with correct KA — skipping.")
+            continue
+        print(f"Tool '{tool_id}' points to a different KA — deleting and recreating.")
+        w.supervisor_agents.delete_tool(name=f"{parent}/tools/{tool_id}")
     topic_descriptions = {
         "data_management": (
             "Knowledge Assistant for Databricks Data Management: Lakeflow (pipelines & ETL), "
@@ -126,18 +134,24 @@ for topic in KA_TOPICS:
         topic,
         f"Knowledge Assistant for the '{topic}' Databricks documentation track.",
     )
-    w.supervisor_agents.create_tool(
-        parent=parent,
-        tool_id=tool_id,
-        tool=sa.Tool(
-            tool_type="knowledge_assistant",
-            description=description,
-            knowledge_assistant=sa.KnowledgeAssistant(
-                knowledge_assistant_id=ka_ids[topic],
+    try:
+        w.supervisor_agents.create_tool(
+            parent=parent,
+            tool_id=tool_id,
+            tool=sa.Tool(
+                tool_type="knowledge_assistant",
+                description=description,
+                knowledge_assistant=sa.KnowledgeAssistant(
+                    knowledge_assistant_id=ka_ids[topic],
+                ),
             ),
-        ),
-    )
-    print(f"Tool '{tool_id}' attached — KA id: {ka_ids[topic]}")
+        )
+        print(f"Tool '{tool_id}' attached — KA id: {ka_ids[topic]}")
+    except Exception as e:
+        if "already exists" in str(e).lower():
+            print(f"Tool '{tool_id}' already exists — skipping.")
+        else:
+            raise
 
 # COMMAND ----------
 # MAGIC %md
