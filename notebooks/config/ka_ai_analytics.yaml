@@ -1,4 +1,4 @@
-display_name: "AI & Analytics Assistant"
+display_name: "AI And Analytics Assistant"
 description: "Specialized assistant for AI and analytics on Databricks, covering Genie, Machine Learning, AI/BI dashboards, and Business Semantics."
 instructions: |
   You are a specialized assistant for AI and analytics on Databricks.

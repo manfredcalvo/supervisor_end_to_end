@@ -4,7 +4,7 @@ bundle:
 variables:
   serving_endpoint_name:
     description: "Name of the Supervisor Agent serving endpoint used by the app"
-    default: "mas-a19fb9c9-endpoint"
+    default: "mas-9cc7722e-endpoint"
   resource_name_suffix:
     description: "Suffix for resource names (app/lakebase instance names etc). Helpful for avoiding name collisions if multiple users deploy this app to the same workspace"
   catalog:
@@ -36,10 +36,10 @@ variables:
     default: "ka-400a632b-endpoint"
   ka_ai_analytics_endpoint:
     description: "Serving endpoint name for the AI & Analytics Knowledge Assistant"
-    default: "ka-da5135d1-endpoint"
+    default: "ka-8588bbbd-endpoint"
   mlflow_experiment_id:
     description: "MLflow experiment ID for the Supervisor Agent (used for feedback assessments)"
-    default: "596640452270627"
+    default: "3328842056013889"
 resources:
   postgres_projects:
     chatbot_lakebase:

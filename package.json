@@ -20,7 +20,6 @@
     "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:reset": "tsx scripts/reset-database.ts",
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
